@@ -6,27 +6,62 @@ import { Mesh } from "three";
 import { OrbitControls, Environment, PerspectiveCamera } from "@react-three/drei";
 
 function RotatingMachine() {
+    const meshRef = useRef<Mesh>(null!);
+
+      useFrame((state, delta) => {
+          meshRef.current.rotation.x += delta * 0.2;
+              meshRef.current.rotation.y += delta * 0.3;
+                  meshRef.current.rotation.z += delta * 0.1;
+                    });
+
+                      return (
+                          <mesh ref={meshRef} position={[0, 0, 0]} scale={1.2}>
+                                <torusKnotGeometry args={[1, 0.6, 128, 32]} />
+                                      <meshStandardMaterial
+                                              color="#3b82f6"
+                                                      emissive="#1e40af"
+                                                              emissiveIntensity={0.5}
+                                                                      roughness={0.2}
+                                                                              metalness={0.8}
+                                                                                      wireframe        
+                                                                                            />
+                                                                                                </mesh>
+                                                                                                  );
+}
+
+function MachinePart({
+  position,
+  targetPosition,
+}: {
+  position: [number, number, number];
+  targetPosition: [number, number, number];
+}) {
   const meshRef = useRef<Mesh>(null!);
 
-  useFrame((state, delta) => {
-    meshRef.current.rotation.x += delta * 0.2;
-    meshRef.current.rotation.y += delta * 0.3;
-    meshRef.current.rotation.z += delta * 0.1;
+  useFrame((_, delta) => {
+    meshRef.current.position.lerp(
+      { x: targetPosition[0], y: targetPosition[1], z: targetPosition[2] } as any,
+      0.02
+    );
   });
 
   return (
-    <mesh ref={meshRef} position={[0, 0, 0]} scale={1.2}>
-      <torusKnotGeometry args={[1, 0.6, 128, 32]} />
-      <meshStandardMaterial
-        color="#3b82f6"
-        emissive="#1e40af"
-        emissiveIntensity={0.5}
-        roughness={0.2}
-        metalness={0.8}
-        wireframe        
-      />
+    <mesh ref={meshRef} position={position} scale={0.5}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="#eb253f" roughness={0.4} metalness={0.7} />
     </mesh>
   );
+};
+
+function AssemblyMachine()
+{
+  return(
+    <>
+    <MachinePart position={[-1, 0, 0]} targetPosition={[0, 0, 0]} />
+    <MachinePart position={[0, 1, 0]} targetPosition={[0, 0.5, 0]} />
+    <MachinePart position={[0, 0, -1]} targetPosition={[0, 0, 0.5]} />
+    </>
+  )
 }
 
 export default function HeroScene() {
@@ -55,6 +90,7 @@ export default function HeroScene() {
           <ambientLight intensity={1.5} />
           <pointLight position={[10, 10, 10]} intensity={1} color="#60a5fa" />
           <RotatingMachine />
+          {/* <AssemblyMachine /> */}
           <Environment preset="city" />
           <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1.5} />
         </Canvas>
